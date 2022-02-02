@@ -56,7 +56,12 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     let page = 1,
-      modal;
+      modal,
+      config = {
+        passwdField: '<?php echo $config['usersTablePasswdField']; ?>',
+        idField: '<?php echo $config['usersTableIdField']; ?>',
+        editableFields: '<?php echo $config['usersTableEditableFields']; ?>'
+      };
 
     const loadUsers = p => {
       $.get('./api/users/')
@@ -66,14 +71,14 @@
           b.find('tr:not(.no-results)').remove();
           if (!r.data || !r.data.length) return;
           for (let i in r.data[0]) {
-            if (i !== '<?php echo $config['usersTablePasswdField']; ?>')
+            if (i !== config.passwdField)
               h.append(`<th>${i}</th>`);
           }
           h.append('<th> <button class="btn btn-xs btn-primary add" title="Add User"> <i class="fa-solid fa-user-plus"></i> </button> </th>');
           for (let l of r.data) {
             let tr = $('<tr>').data('user', l);
             for (let i in l) {
-              if (i !== '<?php echo $config['usersTablePasswdField']; ?>')
+              if (i !== config.passwdField)
                 tr.append(`<td>${l[i]}</td>`);
             }
             tr.append(`
@@ -88,8 +93,8 @@
     };
 
     const editUser = u => {
-      let form = $('#userModal form').html('').data('id', u['<?php echo $config['usersTableIdField']; ?>'] || '');
-      for (let i of '<?php echo $config['usersTableEditableFields']; ?>'.split(',')) {
+      let form = $('#userModal form').html('').data('id', u[config.idField] || '');
+      for (let i of config.editableFields.split(',')) {
         let field = `
             <div class="form-floating">
               <input type="text" class="form-control" id="${i}" name="${i}" value="${u[i] || ''}" required>
