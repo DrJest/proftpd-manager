@@ -129,6 +129,7 @@ $app->post('/api/install', function (Request $request, Response $response, $args
   $usersTableEditableFields = $_POST['usersTableEditableFields'];
   $usersTableIdField = $_POST['usersTableIdField'];
   $usersTablePasswdField = $_POST['usersTablePasswdField'];
+  $usersTableModifiedField = $_POST['usersTableModifiedField'];
 
   try {
     $db = new \PDO("mysql:host=$databaseHost;port=$databasePort;dbname=$databaseName", $databaseUser, $databasePass);
@@ -176,6 +177,7 @@ $app->post('/api/install', function (Request $request, Response $response, $args
     'usersTableEditableFields' => '%s',
     'usersTableIdField' => '%s',
     'usersTablePasswdField' => '%s',
+    'usersTableModifiedField' => '%s',
     'appPassword' => '%s',
   );
   ";
@@ -193,6 +195,7 @@ $app->post('/api/install', function (Request $request, Response $response, $args
     base64_encode($usersTableEditableFields),
     base64_encode($usersTableIdField),
     base64_encode($usersTablePasswdField),
+    base64_encode($usersTableModifiedField),
     password_hash($appPassword, PASSWORD_DEFAULT)
   );
   if (!file_put_contents('config.php', $config)) {
@@ -247,9 +250,13 @@ $app->get('/api/users/', function (Request $request, Response $response, $args) 
   $perPage = 20;
   $offset = ($page - 1) * $perPage;
   $users = $db->query("SELECT * FROM {$config['usersTable']} LIMIT {$perPage} OFFSET {$offset}");
+  $users = $users->fetchAll(PDO::FETCH_ASSOC);
+  foreach ($users as &$user) {
+    unset($user[$usersTablePasswdField]);
+  }
   return sendJson($response, [
     'status' => 'OK',
-    'data' => $users->fetchAll(PDO::FETCH_ASSOC)
+    'data' => $users
   ]);
 });
 
@@ -261,7 +268,6 @@ $app->post('/api/users/', function (Request $request, Response $response, $args)
       'message' => $config['error']
     ], $config['code']);
   }
-  extract($config);
   extract($config);
   if (!$_POST['passwd'] || !$_POST['passwd_confirm'] || $_POST['passwd'] !== $_POST['passwd_confirm']) {
     return sendJson($response, [
@@ -295,6 +301,7 @@ $app->post('/api/users/', function (Request $request, Response $response, $args)
 
 $app->post('/api/users/{id}', function (Request $request, Response $response, $args) {
   $config = loadConfig();
+  $id = $args['id'];
   if (isset($config['error'])) {
     return sendJson($response, [
       'status' => 'error',
@@ -302,6 +309,7 @@ $app->post('/api/users/{id}', function (Request $request, Response $response, $a
     ], $config['code']);
   }
   extract($config);
+  
   $fields = [];
   $values = [];
   foreach ($usersTableEditableFields as $f) {
@@ -310,8 +318,9 @@ $app->post('/api/users/{id}', function (Request $request, Response $response, $a
   }
   $values['id'] = $id;
   $sql = "UPDATE {$usersTable} SET " . join(',', $fields) . " WHERE {$usersTableIdField} = :id";
-
+  
   $result = $db->prepare($sql)->execute($values);
+
   if (!$result) {
     return sendJson($response, [
       'status' => 'error',
@@ -339,6 +348,10 @@ $app->post('/api/users/{id}', function (Request $request, Response $response, $a
       ], 500);
     }
   }
+  $sql = "UPDATE {$usersTable} SET {$usersTableModifiedField} = NOW() WHERE {$usersTableIdField} = :id";
+  $result = $db->prepare($sql)->execute([
+    'id' => $id
+  ]);
   return sendJson($response, [
     'status' => 'OK'
   ]);
