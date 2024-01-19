@@ -55,6 +55,10 @@
         <input type="text" class="form-control" id="usersTablePasswdField" name="usersTablePasswdField" value="passwd">
         <label for="usersTablePasswdField">Users Table Password Field</label>
       </div>
+      <div class="form-floating">
+        <input type="text" class="form-control" id="usersTableModifiedField" name="usersTableModifiedField" value="modified">
+        <label for="usersTableModifiedField">Users Table Modified Field</label>
+      </div>
     </div>
     <div class="col-4 text-center">
       <h3>Manager Settings</h3>

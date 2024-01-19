@@ -4,7 +4,10 @@
       <br />
       <br />
       <br />
-      <h2>Users</h2>
+      <h2>
+        Users
+        <button id="add-user" class="btn btn-success btn-xs" style="float: right">Add</button>
+      </h2>
       <table class="table table-striped" id="users">
         <thead>
           <tr>
@@ -16,6 +19,7 @@
           </tr>
         </tbody>
       </table>
+
       <nav aria-label="Users navigation">
         <ul class="pagination justify-content-center">
           <li class="page-item disabled">
@@ -71,15 +75,13 @@
           b.find('tr:not(.no-results)').remove();
           if (!r.data || !r.data.length) return;
           for (let i in r.data[0]) {
-            if (i !== config.passwdField)
-              h.append(`<th>${i}</th>`);
+            h.append(`<th>${i}</th>`);
           }
-          h.append('<th> <button class="btn btn-xs btn-primary add" title="Add User"> <i class="fa-solid fa-user-plus"></i> </button> </th>');
+          h.append('<th></th>');
           for (let l of r.data) {
             let tr = $('<tr>').data('user', l);
             for (let i in l) {
-              if (i !== config.passwdField)
-                tr.append(`<td>${l[i]}</td>`);
+              tr.append(`<td>${l[i]}</td>`);
             }
             tr.append(`
               <td>
@@ -144,10 +146,12 @@
             }
           }
         })
-      })
-      .on('click', '.add', function(e) {
-        editUser({});
-      })
+      });
+
+    $('#add-user').click(function(e) {
+      e.preventDefault();
+      editUser({});
+    })
 
     $('#userModal')
       .on('submit', 'form', function(e) {
