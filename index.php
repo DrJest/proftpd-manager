@@ -308,7 +308,7 @@ $app->post('/api/users/{id}', function (Request $request, Response $response, $a
     $fields[] = "`{$f}` = :{$f}";
     $values[$f] = $_POST[$f];
   }
-  $values['id'] = $id;
+  $values['id'] = $args['id'];
   $sql = "UPDATE {$usersTable} SET " . join(',', $fields) . " WHERE {$usersTableIdField} = :id";
 
   $result = $db->prepare($sql)->execute($values);
